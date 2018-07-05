@@ -26,6 +26,7 @@ if (current_cpu == "mipsel" || v8_current_cpu == "mipsel" ||
 
     # MIPS SIMD Arch compilation flag.
     mips_use_msa = false
+    mips_use_mmi = false
 
     # MIPS floating-point ABI. Possible values are:
     #   "hard": sets the GCC -mhard-float option.
@@ -50,6 +51,7 @@ if (current_cpu == "mipsel" || v8_current_cpu == "mipsel" ||
 
       # MIPS SIMD Arch compilation flag.
       mips_use_msa = true
+      mips_use_mmi = false
     }
   } else {
     declare_args() {
@@ -57,6 +59,7 @@ if (current_cpu == "mipsel" || v8_current_cpu == "mipsel" ||
 
       # MIPS SIMD Arch compilation flag.
       mips_use_msa = false
+      mips_use_mmi = false
     }
   }
 }
