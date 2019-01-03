@@ -215,8 +215,14 @@ template("msvc_toolchain") {
 
     tool("asm") {
       if (toolchain_args.current_cpu == "arm64") {
-        prefix = rebase_path("$clang_base_path/bin", root_build_dir)
-        ml = "${clang_prefix}${prefix}/${clang_cl} --target=arm64-windows"
+        if (is_clang) {
+          prefix = rebase_path("$clang_base_path/bin", root_build_dir)
+          ml = "${clang_prefix}${prefix}/${clang_cl} --target=arm64-windows"
+        } else {
+          # Not clang Windows means MSVC, so use MSVC's assembler.
+          # What about mingw and cygwin?
+          ml = "armasm64.exe /nologo"
+        }
       } else {
         if (toolchain_args.current_cpu == "x64") {
           ml = "ml64.exe /nologo"
@@ -236,7 +242,12 @@ template("msvc_toolchain") {
       }
       command = "$python_path $tool_wrapper_path asm-wrapper $env $ml {{defines}} {{include_dirs}} {{asmflags}} "
       if (toolchain_args.current_cpu == "arm64") {
-        command += "-c -o{{output}} {{source}}"
+        if (is_clang) {
+          command += "-c -o{{output}} {{source}}"
+        } else {
+          # TODO: invoke preprocessor on ASM first to honor defines properly
+          command = "$python_path $tool_wrapper_path asm-wrapper $env $ml {{include_dirs}} -o {{output}} {{source}}"
+        }
       } else {
         command += "/c /Fo{{output}} {{source}}"
       }
