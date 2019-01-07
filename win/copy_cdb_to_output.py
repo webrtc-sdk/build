@@ -66,8 +66,8 @@ def _CopyCDBToOutput(output_dir, target_arch):
                                         '\\Windows Kits\\10')))
   if target_arch == 'ia32' or target_arch == 'x86':
     src_arch = 'x86'
-  elif target_arch == 'x64':
-    src_arch = 'x64'
+  elif target_arch in ['x64', 'arm64']:
+    src_arch = target_arch
   else:
     print 'copy_cdb_to_output.py: unknown target_arch %s' % target_arch
     sys.exit(1)
@@ -99,10 +99,11 @@ def _CopyCDBToOutput(output_dir, target_arch):
   _CopyImpl('uext.dll', dst_winext_dir, src_winext_dir)
   _CopyImpl('exts.dll', dst_winxp_dir, src_winxp_dir)
   _CopyImpl('ntsdexts.dll', dst_winxp_dir, src_winxp_dir)
-  _CopyImpl('api-ms-win-eventing-provider-l1-1-0.dll', output_dir, src_dir)
+  if src_arch in ['x64', 'x86']:
+    _CopyImpl('api-ms-win-eventing-provider-l1-1-0.dll', output_dir, src_dir)
+    _CopyImpl('ucrtbase.dll', output_dir, src_crt_dir)
   for dll_path in glob.glob(os.path.join(src_crt_dir, 'api-ms-win-*.dll')):
     _CopyImpl(os.path.split(dll_path)[1], output_dir, src_crt_dir)
-  _CopyImpl('ucrtbase.dll', output_dir, src_crt_dir)
   return 0
 
 
