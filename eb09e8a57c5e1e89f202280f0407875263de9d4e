@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "214efe63_422e7338",
+        "filename": "toolchain/win/BUILD.gn",
+        "patchSetId": 2
+      },
+      "lineNbr": 223,
+      "author": {
+        "id": 1128439
+      },
+      "writtenOn": "2019-01-07T22:30:43Z",
+      "side": 1,
+      "message": "I don\u0027t understand this question",
+      "revId": "eb09e8a57c5e1e89f202280f0407875263de9d4e",
+      "serverId": "3ce6091f-6c88-37e8-8c75-72f92ae8dfba",
+      "unresolved": true
+    }
+  ]
+}
