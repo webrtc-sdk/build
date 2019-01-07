@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "db697436_53673ea1",
+        "filename": "win/copy_cdb_to_output.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 72,
+      "author": {
+        "id": 1128439
+      },
+      "writtenOn": "2019-01-07T19:56:13Z",
+      "side": 1,
+      "message": "Maybe combine this with the previous conditional and have src_arch \u003d target_arch?",
+      "revId": "3c2ef61cde5ea1c009b8bb2f871af879459e8a3c",
+      "serverId": "3ce6091f-6c88-37e8-8c75-72f92ae8dfba",
+      "unresolved": true
+    }
+  ]
+}
