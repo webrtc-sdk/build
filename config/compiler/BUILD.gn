@@ -1894,7 +1894,7 @@ if (is_win) {
   }
 
   if (is_mac || is_ios) {
-    if (symbol_level == 2) {
+    if (symbol_level == 2 && visibility == "hidden") {
       # Mac dead code stripping requires symbols.
       common_optimize_on_ldflags += [ "-Wl,-dead_strip" ]
     }

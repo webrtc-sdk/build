@@ -165,6 +165,7 @@ declare_args() {
   is_component_build = is_debug && current_os != "ios"
 }
 
+
 assert(!(is_debug && is_official_build), "Can't do official debug builds")
 
 # ==============================================================================
@@ -454,15 +455,23 @@ if (is_win) {
   ]
 }
 
-if (is_posix) {
-  if (current_os != "aix") {
-    default_compiler_configs +=
-        [ "//build/config/gcc:symbol_visibility_hidden" ]
-  }
+declare_args() {
+  # Symbol visibility. Set to "hidden" or "default".
+  symbol_visibility = "hidden"
+}
+
+if (is_posix && current_os == "aix") {
+  symbol_visibility = "default"
 }
 
 if (is_fuchsia) {
+  symbol_visibility = "hidden"
+}
+
+if (symbol_visibility == "hidden") {
   default_compiler_configs += [ "//build/config/gcc:symbol_visibility_hidden" ]
+} else if (symbol_visibility == "default") {
+  default_compiler_configs += [ "//build/config/gcc:symbol_visibility_default" ]
 }
 
 if (is_android) {
