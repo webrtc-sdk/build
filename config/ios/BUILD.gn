@@ -33,6 +33,10 @@ config("compiler") {
     triplet_environment = "-simulator"
   } else if (target_environment == "device") {
     triplet_environment = ""
+  } else if (target_environment == "xrdevice") {
+    triplet_environment = ""
+  } else if (target_environment == "xrsimulator") {
+    triplet_environment = "-simulator"
   } else if (target_environment == "catalyst") {
     triplet_environment = "-macabi"
   } else {
@@ -41,6 +45,10 @@ config("compiler") {
 
   # OS.
   triplet_os = "apple-ios"
+
+  if (target_environment == "xrdevice" || target_environment == "xrsimulator") {
+    triplet_os = "apple-xros"
+  }
 
   # Set target.
   common_flags = [
@@ -188,6 +196,10 @@ config("ios_dynamic_flags") {
     _swift_compatibility_libs_suffix = "iphonesimulator"
   } else if (target_environment == "device") {
     _swift_compatibility_libs_suffix = "iphoneos"
+  } else if (target_environment == "xrdevice") {
+    _swift_compatibility_libs_suffix = "xros"
+  } else if (target_environment == "xrsimulator") {
+    _swift_compatibility_libs_suffix = "xrsimulator"
   } else if (target_environment == "catalyst") {
     # The Swift compatibility libraries have changed location starting with
     # Xcode 13.0, so check the version of Xcode when deciding which path to
