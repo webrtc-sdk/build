@@ -13,12 +13,14 @@ from devil.utils import timeout_retry
 from pylib.local.device import local_device_environment
 from pylib.local.emulator import avd
 
+from lib.proto import exception_recorder
+
 # Mirroring https://bit.ly/2OjuxcS#23
 _MAX_ANDROID_EMULATORS = 16
 
 
-# TODO(1262303): After Telemetry is supported by python3 we can re-add
-# super without arguments in this script.
+# TODO(crbug.com/40799394): After Telemetry is supported by python3 we can
+# re-add super without arguments in this script.
 # pylint: disable=super-with-arguments
 class LocalEmulatorEnvironment(local_device_environment.LocalDeviceEnvironment):
 
@@ -43,6 +45,7 @@ class LocalEmulatorEnvironment(local_device_environment.LocalDeviceEnvironment):
 
     self._emulator_instances = []
     self._device_serials = []
+    self._emulator_start_timeout = 60
 
   #override
   def SetUp(self):
@@ -52,6 +55,10 @@ class LocalEmulatorEnvironment(local_device_environment.LocalDeviceEnvironment):
         self._avd_config.CreateInstance(output_manager=self.output_manager)
         for _ in range(self._emulator_count)
     ]
+
+    if 'car' in self._avd_config.avd_name or self._writable_system:
+      logging.info("Use longer timeout for AVD")
+      self._emulator_start_timeout = 120
 
     def start_emulator_instance(inst):
       def is_timeout_error(exc):
@@ -66,18 +73,21 @@ class LocalEmulatorEnvironment(local_device_environment.LocalDeviceEnvironment):
                      debug_tags=self._emulator_debug_tags,
                      enable_network=self._emulator_enable_network,
                      require_fast_start=True)
-        except avd.AvdException:
+        except avd.AvdException as e:
+          exception_recorder.register(e)
           logging.exception('Failed to start emulator instance.')
           return None
         except base_error.BaseError as e:
+          exception_recorder.register(e)
           # Timeout error usually indicates the emulator is not responding.
           # In this case, we should stop it forcely.
+          logging.info("Force stop the emulator")
           inst.Stop(force=is_timeout_error(e))
           raise
         return inst
 
       return timeout_retry.Run(impl,
-                               timeout=120 if self._writable_system else 60,
+                               timeout=self._emulator_start_timeout,
                                retries=2,
                                args=[inst],
                                retry_if_func=is_timeout_error)

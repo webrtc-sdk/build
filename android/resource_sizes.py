@@ -34,23 +34,20 @@ from pylib.constants import host_paths
 _AAPT_PATH = lazy.WeakConstant(lambda: build_tools.GetPath('aapt'))
 _ANDROID_UTILS_PATH = os.path.join(host_paths.DIR_SOURCE_ROOT, 'build',
                                    'android', 'gyp')
-_BUILD_UTILS_PATH = os.path.join(host_paths.DIR_SOURCE_ROOT, 'build', 'util')
 _READOBJ_PATH = os.path.join(host_paths.DIR_SOURCE_ROOT, 'third_party',
                              'llvm-build', 'Release+Asserts', 'bin',
                              'llvm-readobj')
 
-with host_paths.SysPath(host_paths.BUILD_COMMON_PATH):
-  import perf_tests_results_helper  # pylint: disable=import-error
+with host_paths.SysPath(host_paths.BUILD_UTIL_PATH):
+  from lib.common import perf_tests_results_helper
+  from lib.results import result_sink
+  from lib.results import result_types
 
 with host_paths.SysPath(host_paths.TRACING_PATH):
   from tracing.value import convert_chart_json  # pylint: disable=import-error
 
 with host_paths.SysPath(_ANDROID_UTILS_PATH, 0):
   from util import build_utils  # pylint: disable=import-error
-
-with host_paths.SysPath(_BUILD_UTILS_PATH, 0):
-  from lib.results import result_sink  # pylint: disable=import-error
-  from lib.results import result_types  # pylint: disable=import-error
 
 # Captures an entire config from aapt output.
 _AAPT_CONFIG_PATTERN = r'config %s:(.*?)config [a-zA-Z-]+:'
@@ -638,7 +635,7 @@ def _AnalyzeInternal(apk_path,
   # end result is going to be uploaded to the perf dashboard in the HistogramSet
   # format due to mixed units (bytes vs. zip entries) causing malformed
   # summaries to be generated.
-  # TODO(https://crbug.com/903970): Remove this workaround if unit mixing is
+  # TODO(crbug.com/41425646): Remove this workaround if unit mixing is
   # ever supported.
   report_func('FileCount', 'file count', len(apk_contents), 'zip entries')
 
@@ -865,7 +862,10 @@ def main():
       '--isolated-script-test-perf-output',
       type=os.path.realpath,
       help=argparse.SUPPRESS)
-
+  argparser.add_argument('--isolated-script-test-repeat',
+                         help=argparse.SUPPRESS)
+  argparser.add_argument('--isolated-script-test-launcher-retry-limit',
+                         help=argparse.SUPPRESS)
   output_group = argparser.add_mutually_exclusive_group()
 
   output_group.add_argument(

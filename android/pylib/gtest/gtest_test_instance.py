@@ -21,10 +21,8 @@ from pylib.base import test_instance
 from pylib.symbols import stack_symbolizer
 from pylib.utils import test_filter
 
-
-with host_paths.SysPath(host_paths.BUILD_COMMON_PATH):
-  import unittest_util # pylint: disable=import-error
-
+with host_paths.SysPath(host_paths.BUILD_UTIL_PATH):
+  from lib.common import unittest_util
 
 BROWSER_TEST_SUITES = [
     'android_browsertests',
@@ -384,6 +382,9 @@ class GtestTestInstance(test_instance.TestInstance):
       self._extras = {
           _EXTRA_NATIVE_TEST_ACTIVITY: self._apk_helper.GetActivityName(),
       }
+      if args.timeout_scale and args.timeout_scale != 1:
+        self._extras[_EXTRA_RUN_IN_SUB_THREAD] = 1
+
       if self._suite in RUN_IN_SUB_THREAD_TEST_SUITES:
         self._extras[_EXTRA_RUN_IN_SUB_THREAD] = 1
       if self._suite in BROWSER_TEST_SUITES:

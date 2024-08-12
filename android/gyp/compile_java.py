@@ -64,17 +64,17 @@ ERRORPRONE_WARNINGS_TO_DISABLE = [
     'ToStringReturnsNull',
     # If possible, this should be automatically fixed if turned on:
     'MalformedInlineTag',
-    # TODO(crbug.com/834807): Follow steps in bug
+    # TODO(crbug.com/41384359): Follow steps in bug
     'DoubleBraceInitialization',
-    # TODO(crbug.com/834790): Follow steps in bug.
+    # TODO(crbug.com/41384349): Follow steps in bug.
     'CatchAndPrintStackTrace',
-    # TODO(crbug.com/801210): Follow steps in bug.
+    # TODO(crbug.com/41364336): Follow steps in bug.
     'SynchronizeOnNonFinalField',
-    # TODO(crbug.com/802073): Follow steps in bug.
+    # TODO(crbug.com/41364806): Follow steps in bug.
     'TypeParameterUnusedInFormals',
-    # TODO(crbug.com/803484): Follow steps in bug.
+    # TODO(crbug.com/41365724): Follow steps in bug.
     'CatchFail',
-    # TODO(crbug.com/803485): Follow steps in bug.
+    # TODO(crbug.com/41365725): Follow steps in bug.
     'JUnitAmbiguousTestClass',
     # Android platform default is always UTF-8.
     # https://developer.android.com/reference/java/nio/charset/Charset.html#defaultCharset()
@@ -505,7 +505,7 @@ def _RunCompiler(changes,
   java_srcjars = options.java_srcjars
   save_info_file = jar_info_path is not None
 
-  # Use jar_path's directory to ensure paths are relative (needed for goma).
+  # Use jar_path's directory to ensure paths are relative (needed for rbe).
   temp_dir = jar_path + '.staging'
   build_utils.DeleteDirectory(temp_dir)
   os.makedirs(temp_dir)
@@ -664,8 +664,6 @@ def _ParseOptions(argv):
       help='Whether code being compiled should be built with stricter '
       'warnings for chromium code.')
   parser.add_option(
-      '--gomacc-path', help='When set, prefix javac command with gomacc')
-  parser.add_option(
       '--errorprone-path', help='Use the Errorprone compiler at this path.')
   parser.add_option(
       '--enable-errorprone',
@@ -742,10 +740,7 @@ def main(argv):
                                        force=options.use_build_server)):
     return
 
-  javac_cmd = []
-  if options.gomacc_path:
-    javac_cmd.append(options.gomacc_path)
-  javac_cmd.append(build_utils.JAVAC_PATH)
+  javac_cmd = [build_utils.JAVAC_PATH]
 
   javac_args = [
       '-g',

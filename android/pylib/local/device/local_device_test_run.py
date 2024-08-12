@@ -19,12 +19,13 @@ from devil.android import device_errors
 from devil.android.sdk import version_codes
 from devil.android.tools import device_recovery
 from devil.utils import signal_handler
-from pylib import valgrind_tools
 from pylib.base import base_test_result
 from pylib.base import test_collection
 from pylib.base import test_exception
 from pylib.base import test_run
 from pylib.local.device import local_device_environment
+
+from lib.proto import exception_recorder
 
 
 _SIGTERM_TEST_LOG = (
@@ -48,7 +49,6 @@ class LocalDeviceTestRun(test_run.TestRun):
 
   def __init__(self, env, test_instance):
     super().__init__(env, test_instance)
-    self._tools = {}
     # This is intended to be filled by a child class.
     self._installed_packages = []
     env.SetPreferredAbis(test_instance.GetPreferredAbis())
@@ -88,7 +88,8 @@ class LocalDeviceTestRun(test_run.TestRun):
           else:
             raise Exception(
                 'Unexpected result type: %s' % type(result).__name__)
-        except device_errors.CommandTimeoutError:
+        except device_errors.CommandTimeoutError as e:
+          exception_recorder.register(e)
           # Test timeouts don't count as device errors for the purpose
           # of bad device detection.
           consecutive_device_errors = 0
@@ -115,11 +116,13 @@ class LocalDeviceTestRun(test_run.TestRun):
                 base_test_result.BaseTestResult(
                     self._GetUniqueTestName(test),
                     base_test_result.ResultType.TIMEOUT))
-        except device_errors.DeviceUnreachableError:
+        except device_errors.DeviceUnreachableError as e:
+          exception_recorder.register(e)
           # If the device is no longer reachable then terminate this
           # run_tests_on_device call.
           raise
-        except base_error.BaseError:
+        except base_error.BaseError as e:
+          exception_recorder.register(e)
           # If we get a device error but believe the device is still
           # reachable, attempt to continue using it.
           if isinstance(tests, test_collection.TestCollection):
@@ -157,7 +160,7 @@ class LocalDeviceTestRun(test_run.TestRun):
         while self._env.current_try < self._env.max_tries and tests:
           tries = self._env.current_try
           tests = self._SortTests(tests)
-          grouped_tests = self._GroupTests(tests)
+          grouped_tests = self._GroupTestsAfterSharding(tests)
           logging.info('STARTING TRY #%d/%d', tries + 1, self._env.max_tries)
           if tries > 0 and self._env.recover_devices:
             if any(d.build_version_sdk == version_codes.LOLLIPOP_MR1
@@ -172,9 +175,10 @@ class LocalDeviceTestRun(test_run.TestRun):
                   'Attempting to recover devices prior to last test attempt.')
               self._env.parallel_devices.pMap(
                   device_recovery.RecoverDevice, None)
-          logging.info('Will run %d tests on %d devices: %s',
-                       len(tests), len(self._env.devices),
-                       ', '.join(str(d) for d in self._env.devices))
+          logging.info(
+              'Will run %d tests, grouped into %d groups, on %d devices: %s',
+              len(tests), len(grouped_tests), len(self._env.devices),
+              ', '.join(str(d) for d in self._env.devices))
           for t in tests:
             logging.debug('  %s', t)
 
@@ -263,7 +267,7 @@ class LocalDeviceTestRun(test_run.TestRun):
     sharded_tests = []
 
     # Sort tests by hash.
-    # TODO(crbug.com/1257820): Add sorting logic back to _PartitionTests.
+    # TODO(crbug.com/40200835): Add sorting logic back to _PartitionTests.
     tests = self._SortTests(tests)
 
     # Group tests by tests that should run in the same test invocation - either
@@ -321,8 +325,8 @@ class LocalDeviceTestRun(test_run.TestRun):
       # if the size of the test group is larger than the max partition size on
       # its own, just put the group in its own shard instead of splitting up the
       # group.
-      # TODO(crbug/1257820): Add logic to support PRE_ test recognition but it
-      # may hurt performance in most scenarios. Currently all PRE_ tests are
+      # TODO(crbug.com/40200835): Add logic to support PRE_ test recognition but
+      # it may hurt performance in most scenarios. Currently all PRE_ tests are
       # partitioned into the last shard. Unless the number of PRE_ tests are
       # larger than the partition size, the PRE_ test may get assigned into a
       # different shard and cause test failure.
@@ -360,12 +364,6 @@ class LocalDeviceTestRun(test_run.TestRun):
     return ('Batch' not in annotations
             or annotations['Batch']['value'] != 'UnitTests')
 
-  def GetTool(self, device):
-    if str(device) not in self._tools:
-      self._tools[str(device)] = valgrind_tools.CreateTool(
-          self._env.tool, device)
-    return self._tools[str(device)]
-
   def _CreateShardsForDevices(self, tests):
     raise NotImplementedError
 
@@ -388,6 +386,10 @@ class LocalDeviceTestRun(test_run.TestRun):
     raise NotImplementedError
 
   def _GroupTests(self, tests):
+    # pylint: disable=no-self-use
+    return tests
+
+  def _GroupTestsAfterSharding(self, tests):
     # pylint: disable=no-self-use
     return tests
 
