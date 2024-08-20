@@ -76,6 +76,12 @@ if (ios_sdk_path == "") {
   } else if (target_environment == "device") {
     ios_sdk_name = "iphoneos"
     ios_sdk_platform = "iPhoneOS"
+  } else if (target_environment == "xrdevice") {
+    ios_sdk_name = "xros"
+    ios_sdk_platform = "XROS"
+  } else if (target_environment == "xrsimulator") {
+    ios_sdk_name = "xrsimulator"
+    ios_sdk_platform = "XRSimulator"
   } else if (target_environment == "catalyst") {
     ios_sdk_name = "macosx"
     ios_sdk_platform = "MacOSX"

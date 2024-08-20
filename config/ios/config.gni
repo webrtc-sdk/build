@@ -26,4 +26,4 @@ if (target_environment == "") {
 }
 
 assert(target_environment == "simulator" || target_environment == "device" ||
-       target_environment == "catalyst")
+       target_environment == "catalyst" || target_environment == "xrdevice" || target_environment == "xrsimulator")
