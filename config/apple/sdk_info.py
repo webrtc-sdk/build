@@ -141,6 +141,8 @@ def main():
                           'macosx',
                           'watchos',
                           'watchsimulator',
+						  'xros', 
+						  'xrsimulator'
                       ])
   args = parser.parse_args()
   if args.developer_dir:
