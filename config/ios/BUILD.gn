@@ -37,6 +37,14 @@ config("compiler") {
     triplet_environment = ""
   } else if (target_environment == "xrsimulator") {
     triplet_environment = "-simulator"
+  } else if (target_environment == "appletv") {
+    triplet_environment = ""
+  } else if (target_environment == "appletvsimulator") {
+    triplet_environment = "-simulator"
+  } else if (target_environment == "watch") {
+    triplet_environment = ""
+  } else if (target_environment == "watchsimulator") {
+    triplet_environment = "-simulator"
   } else if (target_environment == "catalyst") {
     triplet_environment = "-macabi"
   } else {
@@ -48,6 +56,10 @@ config("compiler") {
 
   if (target_environment == "xrdevice" || target_environment == "xrsimulator") {
     triplet_os = "apple-xros"
+  } else if (target_environment == "appletv" || target_environment == "appletvsimulator") {
+    triplet_os = "apple-tvos"
+  } else if (target_environment == "watch" || target_environment == "watchsimulator") {
+    triplet_os = "apple-watchos"
   }
 
   # Set target.
@@ -200,6 +212,14 @@ config("ios_dynamic_flags") {
     _swift_compatibility_libs_suffix = "xros"
   } else if (target_environment == "xrsimulator") {
     _swift_compatibility_libs_suffix = "xrsimulator"
+  } else if (target_environment == "appletv") {
+    _swift_compatibility_libs_suffix = "appletvos"
+  } else if (target_environment == "appletvsimulator") {
+    _swift_compatibility_libs_suffix = "appletvsimulator"
+  } else if (target_environment == "watch") {
+    _swift_compatibility_libs_suffix = "watchos"
+  } else if (target_environment == "watchsimulator") {
+    _swift_compatibility_libs_suffix = "watchsimulator"
   } else if (target_environment == "catalyst") {
     # The Swift compatibility libraries have changed location starting with
     # Xcode 13.0, so check the version of Xcode when deciding which path to

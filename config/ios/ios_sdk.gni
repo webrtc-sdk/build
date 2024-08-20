@@ -82,6 +82,18 @@ if (ios_sdk_path == "") {
   } else if (target_environment == "xrsimulator") {
     ios_sdk_name = "xrsimulator"
     ios_sdk_platform = "XRSimulator"
+  } else if (target_environment == "watch") {
+    ios_sdk_name = "watchos"
+    ios_sdk_platform = "WatchOS"
+  } else if (target_environment == "watchsimulator") {
+    ios_sdk_name = "watchsimulator"
+    ios_sdk_platform = "WatchSimulator"
+  } else if (target_environment == "appletv") {
+    ios_sdk_name = "appletvos"
+    ios_sdk_platform = "AppleTVOS"
+  } else if (target_environment == "appletvsimulator") {
+    ios_sdk_name = "appletvsimulator"
+    ios_sdk_platform = "AppleTVSimulator"
   } else if (target_environment == "catalyst") {
     ios_sdk_name = "macosx"
     ios_sdk_platform = "MacOSX"

@@ -26,4 +26,6 @@ if (target_environment == "") {
 }
 
 assert(target_environment == "simulator" || target_environment == "device" ||
-       target_environment == "catalyst" || target_environment == "xrdevice" || target_environment == "xrsimulator")
+       target_environment == "catalyst" || target_environment == "xrdevice" || target_environment == "xrsimulator" ||
+       target_environment == "appletv" ||target_environment == "appletvsimulator" ||
+       target_environment == "watch" ||target_environment == "watchsimulator")
