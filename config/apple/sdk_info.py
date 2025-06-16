@@ -133,15 +133,8 @@ def main():
                       default='.',
                       help='Value of gn $root_build_dir')
   parser.add_argument('platform',
-                      choices=[
-                          'appletvos',
-                          'appletvsimulator',
-                          'iphoneos',
-                          'iphonesimulator',
-                          'macosx',
-                          'watchos',
-                          'watchsimulator',
-                      ])
+                      choices=['iphoneos', 'iphonesimulator', 'macosx', 'xros', 'xrsimulator', 'appletvos',
+                               'appletvsimulator', 'watchos', 'watchsimulator'])
   args = parser.parse_args()
   if args.developer_dir:
     os.environ['DEVELOPER_DIR'] = args.developer_dir

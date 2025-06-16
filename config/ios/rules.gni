@@ -25,7 +25,38 @@ template("ios_create_signed_bundle") {
                              "platform_sdk_name",
                              "xcode_extra_attributes",
                            ])
-    platform_sdk_name = ios_sdk_name
+
+    bundle_root_dir = "$_bundle_gen_dir/$_output_name$_bundle_extension"
+    if (target_environment == "simulator" || target_environment == "device" || target_environment == "xrdevice" || 
+        target_environment == "xrsimulator" || target_environment == "appletv" || target_environment == "appletvsimulator" || 
+        target_environment == "watch" || target_environment == "watchsimulator") {
+      bundle_contents_dir = bundle_root_dir
+      bundle_resources_dir = bundle_contents_dir
+      bundle_executable_dir = bundle_contents_dir
+    } else if (target_environment == "catalyst") {
+      if (_bundle_extension != ".framework") {
+        bundle_contents_dir = "$bundle_root_dir/Contents"
+        bundle_resources_dir = "$bundle_contents_dir/Resources"
+        bundle_executable_dir = "$bundle_contents_dir/MacOS"
+      } else {
+        bundle_contents_dir = "$bundle_root_dir/Versions/A"
+        bundle_resources_dir = "$bundle_contents_dir/Resources"
+        bundle_executable_dir = bundle_contents_dir
+      }
+    }
+
+    if (!defined(public_deps)) {
+      public_deps = []
+    }
+
+    _bundle_identifier = ""
+    if (defined(invoker.xcode_product_bundle_id)) {
+      _bundle_identifier = invoker.xcode_product_bundle_id
+      assert(_bundle_identifier == string_replace(_bundle_identifier, "_", "-"),
+             "$target_name: bundle_identifier does not respect rfc1034: " +
+                 _bundle_identifier)
+    }
+
     xcode_extra_attributes = {
       IPHONEOS_DEPLOYMENT_TARGET = ios_deployment_target
 
@@ -37,11 +68,124 @@ template("ios_create_signed_bundle") {
   }
 }
 
-# Expose the template under its original name, to avoid breaking dependencies.
-template("create_signed_bundle") {
-  ios_create_signed_bundle(target_name) {
-    forward_variables_from(invoker, "*", TESTONLY_AND_VISIBILITY)
-    forward_variables_from(invoker, TESTONLY_AND_VISIBILITY)
+    if (defined(invoker.bundle_binary_target)) {
+      public_deps += [ invoker.bundle_binary_target ]
+    }
+
+    if (defined(invoker.bundle_deps)) {
+      if (!defined(deps)) {
+        deps = []
+      }
+      deps += invoker.bundle_deps
+    }
+    if (!defined(deps)) {
+      deps = []
+    }
+
+    post_processing_script = "//build/config/ios/codesign.py"
+    post_processing_sources = [ _bundle_binary_path ]
+    if (_enable_entitlements) {
+      if (defined(invoker.entitlements_target)) {
+        deps += [ invoker.entitlements_target ]
+      }
+      post_processing_sources += [ _entitlements_path ]
+    }
+    post_processing_outputs = [ "$bundle_executable_dir/$_output_name" ]
+    if (_enable_code_signing) {
+      post_processing_outputs +=
+          [ "$bundle_contents_dir/_CodeSignature/CodeResources" ]
+    }
+    if (ios_code_signing_identity != "" && (target_environment == "device" || target_environment == "xrdevice" ||
+        target_environment == "appletv" || target_environment == "watch") &&
+        _enable_embedded_mobileprovision) {
+      post_processing_outputs +=
+          [ "$bundle_contents_dir/embedded.mobileprovision" ]
+    }
+    if (_bundle_extension == ".framework") {
+      if (target_environment == "catalyst") {
+        post_processing_outputs += [
+          "$bundle_root_dir/Versions/Current",
+          "$bundle_root_dir/$_output_name",
+        ]
+
+        if (defined(invoker.has_public_headers) && invoker.has_public_headers) {
+          post_processing_outputs += [
+            "$bundle_root_dir/Headers",
+            "$bundle_root_dir/Modules",
+          ]
+        }
+      } else {
+        not_needed(invoker, [ "has_public_headers" ])
+      }
+    }
+
+    if (defined(invoker.extra_system_frameworks)) {
+      foreach(_framework, invoker.extra_system_frameworks) {
+        post_processing_outputs += [ "$bundle_contents_dir/Frameworks/" +
+                                     get_path_info(_framework, "file") ]
+      }
+    }
+
+    post_processing_args = [
+      "code-sign-bundle",
+      "-t=" + ios_sdk_name,
+      "-i=" + ios_code_signing_identity,
+      "-b=" + rebase_path(_bundle_binary_path, root_build_dir),
+    ]
+    foreach(mobileprovision, ios_mobileprovision_files) {
+      post_processing_args +=
+          [ "-m=" + rebase_path(mobileprovision, root_build_dir) ]
+    }
+    post_processing_sources += ios_mobileprovision_files
+    if (_enable_entitlements) {
+      post_processing_args +=
+          [ "-e=" + rebase_path(_entitlements_path, root_build_dir) ]
+    }
+    if (!_enable_embedded_mobileprovision) {
+      post_processing_args += [ "--disable-embedded-mobileprovision" ]
+    }
+    post_processing_args += [ rebase_path(bundle_root_dir, root_build_dir) ]
+    if (!_enable_code_signing) {
+      post_processing_args += [ "--disable-code-signature" ]
+    }
+    if (defined(invoker.extra_system_frameworks)) {
+      # All framework in extra_system_frameworks are expected to be system
+      # framework and the path to be already system absolute so do not use
+      # rebase_path here unless using RBE and system Xcode (as in that
+      # case the system framework are found via a symlink in root_build_dir).
+      foreach(_framework, invoker.extra_system_frameworks) {
+        if (use_system_xcode && (use_remoteexec || use_siso)) {
+          _framework_path = rebase_path(_framework, root_build_dir)
+        } else {
+          _framework_path = _framework
+        }
+        post_processing_args += [ "-F=$_framework_path" ]
+      }
+    }
+    if (defined(invoker.partial_info_plist)) {
+      _partial_info_plists = [
+        invoker.primary_info_plist,
+        invoker.partial_info_plist,
+      ]
+
+      _plist_compiler_path = "//build/apple/plist_util.py"
+
+      post_processing_sources += _partial_info_plists
+      post_processing_sources += [ _plist_compiler_path ]
+      if (target_environment != "catalyst" ||
+          _bundle_extension != ".framework") {
+        post_processing_outputs += [ "$bundle_contents_dir/Info.plist" ]
+      } else {
+        post_processing_outputs += [ "$bundle_resources_dir/Info.plist" ]
+      }
+
+      post_processing_args +=
+          [ "-P=" + rebase_path(_plist_compiler_path, root_build_dir) ]
+      foreach(_partial_info_plist, _partial_info_plists) {
+        post_processing_args +=
+            [ "-p=" + rebase_path(_partial_info_plist, root_build_dir) ]
+      }
+    }
   }
 }
 
@@ -830,7 +974,9 @@ template("ios_framework_bundle") {
     _public_headers = invoker.public_headers
 
     _framework_root_dir = "$root_out_dir/$_output_name.framework"
-    if (target_environment == "simulator" || target_environment == "device") {
+    if (target_environment == "simulator" || target_environment == "device" || target_environment == "xrdevice" ||
+        target_environment == "xrsimulator" || target_environment == "appletv" || target_environment == "appletvsimulator" || 
+        target_environment == "watch" || target_environment == "watchsimulator") {
       _framework_contents_dir = _framework_root_dir
     } else if (target_environment == "catalyst") {
       _framework_contents_dir = "$_framework_root_dir/Versions/A"
