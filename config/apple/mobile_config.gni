@@ -88,6 +88,10 @@ if (is_ios || is_watchos) {
   _target_environments = [
     "simulator",
     "device",
+    "appletv",
+    "appletvsimulator",
+    "xrdevice",
+    "xrsimulator",
   ]
   if (is_ios && target_platform == "iphoneos") {
     _target_environments += [ "catalyst" ]

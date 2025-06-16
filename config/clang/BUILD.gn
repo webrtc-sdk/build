@@ -262,14 +262,14 @@ clang_lib("compiler_builtins") {
         libname = "ios"
       } else if (target_environment == "catalyst") {
         libname = "osx"
-      } else {
-        assert(false, "unsupported target_environment=$target_environment")
-      }
-    } else if (target_platform == "tvos") {
-      if (target_environment == "simulator") {
+      } else if (target_environment == "appletvsimulator") {
         libname = "tvossim"
-      } else if (target_environment == "device") {
+      } else if (target_environment == "appletv") {
         libname = "tvos"
+      } else if (target_environment == "xrsimulator") {
+        libname = "xrossim"
+      } else if (target_environment == "xrdevice") {
+        libname = "xros"
       } else {
         assert(false, "unsupported target_environment=$target_environment")
       }
@@ -290,18 +290,26 @@ clang_lib("compiler_profile") {
   } else if (is_mac) {
     libname = "profile_osx"
   } else if (is_ios) {
-    if (target_environment == "simulator") {
-      libname = "profile_iossim"
-    } else if (target_environment == "catalyst") {
-      # We don't enable clang coverage on iOS device builds, and the library is
-      # not part of the Clang package tarball as a result.
-      #
-      # Don't define libname which makes this target do nothing.
+    if (target_platform == "iphoneos") {
+      if (target_environment == "simulator") {
+        libname = "profile_iossim"
+      } else if (target_environment == "catalyst") {
+        # We don't enable clang coverage on iOS device builds, and the library is
+        # not part of the Clang package tarball as a result.
+        #
+        # Don't define libname which makes this target do nothing.
+      } else if (target_environment == "appletvsimulator") {
+        libname = "profile_tvossim"
+      } else if (target_environment == "xrsimulator") {
+        libname = "profile_xrossim"
+      } else {
+        # We don't enable clang coverage on device builds, and the library is
+        # not part of the Clang package tarball as a result.
+        #
+        # Don't define libname which makes this target do nothing.
+      }
     } else {
-      # We don't enable clang coverage on iOS device builds, and the library is
-      # not part of the Clang package tarball as a result.
-      #
-      # Don't define libname which makes this target do nothing.
+      assert(false, "unsupported target_platform=$target_platform")
     }
   } else {
     libname = "profile"
