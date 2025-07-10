@@ -886,6 +886,13 @@ template("ios_framework_bundle") {
   if (_has_public_headers) {
     _public_headers = invoker.public_headers
     _framework_root_dir = "$root_out_dir/$_output_name.framework"
+    if (target_environment == "simulator" || target_environment == "device" || target_environment == "xrdevice" ||
+        target_environment == "xrsimulator" || target_environment == "appletv" || target_environment == "appletvsimulator" || 
+        target_environment == "watch" || target_environment == "watchsimulator") {
+    #  _framework_contents_dir = _framework_root_dir
+    #} else if (target_environment == "catalyst") {
+    #  _framework_contents_dir = "$_framework_root_dir/Versions/A"
+    }
 
     _compile_headers_map_target = _target_name + "_compile_headers_map"
     action(_compile_headers_map_target) {

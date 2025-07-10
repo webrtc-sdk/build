@@ -71,29 +71,33 @@ ios_use_xcode_symlinks =
 
 if (ios_sdk_path == "") {
   # Compute default target.
-  if (target_platform == "iphoneos") {
-    if (target_environment == "simulator") {
-      ios_sdk_name = "iphonesimulator"
-      ios_sdk_platform = "iPhoneSimulator"
-    } else if (target_environment == "device") {
-      ios_sdk_name = "iphoneos"
-      ios_sdk_platform = "iPhoneOS"
-    } else if (target_environment == "catalyst") {
-      ios_sdk_name = "macosx"
-      ios_sdk_platform = "MacOSX"
-    } else {
-      assert(false, "unsupported target_environment=$target_environment")
-    }
-  } else if (target_platform == "tvos") {
-    if (target_environment == "simulator") {
-      ios_sdk_name = "appletvsimulator"
-      ios_sdk_platform = "AppleTVSimulator"
-    } else if (target_environment == "device") {
-      ios_sdk_name = "appletvos"
-      ios_sdk_platform = "AppleTVOS"
-    } else {
-      assert(false, "unsupported target_environment=$target_environment")
-    }
+  if (target_environment == "simulator") {
+    ios_sdk_name = "iphonesimulator"
+    ios_sdk_platform = "iPhoneSimulator"
+  } else if (target_environment == "device") {
+    ios_sdk_name = "iphoneos"
+    ios_sdk_platform = "iPhoneOS"
+  } else if (target_environment == "xrdevice") {
+    ios_sdk_name = "xros"
+    ios_sdk_platform = "XROS"
+  } else if (target_environment == "xrsimulator") {
+    ios_sdk_name = "xrsimulator"
+    ios_sdk_platform = "XRSimulator"
+  } else if (target_environment == "watch") {
+    ios_sdk_name = "watchos"
+    ios_sdk_platform = "WatchOS"
+  } else if (target_environment == "watchsimulator") {
+    ios_sdk_name = "watchsimulator"
+    ios_sdk_platform = "WatchSimulator"
+  } else if (target_environment == "appletv") {
+    ios_sdk_name = "appletvos"
+    ios_sdk_platform = "AppleTVOS"
+  } else if (target_environment == "appletvsimulator") {
+    ios_sdk_name = "appletvsimulator"
+    ios_sdk_platform = "AppleTVSimulator"
+  } else if (target_environment == "catalyst") {
+    ios_sdk_name = "macosx"
+    ios_sdk_platform = "MacOSX"
   } else {
     assert(false, "unsupported target_platform=$target_platform")
   }
