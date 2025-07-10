@@ -296,6 +296,14 @@ if (is_linux || is_chromeos) {
         rust_abi_target = "aarch64-apple-ios"
       } else if (target_environment == "catalyst") {
         rust_abi_target = "aarch64-apple-ios-macabi"
+      } else if (target_environment == "appletvsimulator") {
+        rust_abi_target = "aarch64-apple-tvos-sim"
+      } else if (target_environment == "appletv") {
+        rust_abi_target = "aarch64-apple-tvos"
+      } else if (target_environment == "xrsimulator") {
+        rust_abi_target = "aarch64-apple-xros-sim"
+      } else if (target_environment == "xrdevice") {
+        rust_abi_target = "aarch64-apple-xros"
       } else {
         assert(false, "unsupported target_environment=$target_environment")
       }
@@ -318,6 +326,10 @@ if (is_linux || is_chromeos) {
         rust_abi_target = "x86_64-apple-ios"
       } else if (target_environment == "catalyst") {
         rust_abi_target = "x86_64-apple-ios-macabi"
+         } else if (target_environment == "appletvsimulator") {
+        rust_abi_target = "x86_64-apple-tvos"
+      } else if (target_environment == "xrsimulator") {
+        rust_abi_target = "x86_64-apple-xros"
       } else {
         assert(false, "unsupported target_environment=$target_environment")
       }
